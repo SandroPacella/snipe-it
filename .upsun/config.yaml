@@ -1,0 +1,82 @@
+applications:
+  snipeit:
+    type: php:8.2
+    source:
+      root: "/"
+
+    runtime:
+      extensions:
+        - redis
+        - pdo_mysql
+        - gd
+        - ldap
+        - zip
+        - bcmath
+        - sodium
+
+    relationships:
+      database: "database:mysql"
+      cache: "cache:redis"
+
+    web:
+      locations:
+        "/":
+          root: "public"
+          passthru: "/index.php"
+          index:
+            - "index.php"
+          allow: true
+          scripts: true
+          expires: -1
+          rules:
+            \.(css|js|map|woff2?|ttf|eot|svg|png|jpe?g|gif|ico)$:
+              expires: 1y
+        "/storage":
+          root: "storage/app/public"
+          expires: 1y
+          scripts: false
+          allow: true
+
+    mounts:
+      "storage":
+        source: storage
+        source_path: storage
+      "bootstrap/cache":
+        source: storage
+        source_path: bootstrap-cache
+
+    hooks:
+      build: |
+        set -e
+        composer install --no-dev --optimize-autoloader
+        npm ci
+        npm run prod
+        rm -f public/storage
+        ln -s ../storage/app/public public/storage
+
+      deploy: |
+        set -e
+        mkdir -p storage/framework/cache/data \
+                 storage/framework/sessions \
+                 storage/framework/views \
+                 storage/logs \
+                 storage/app/public \
+                 storage/private_uploads
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+        php artisan migrate --force
+
+services:
+  database:
+    type: mariadb:11.8
+  cache:
+    type: redis-persistent:7.0
+
+routes:
+  "https://www.{default}/":
+    type: redirect
+    to: "https://{default}/"
+  "https://{default}/":
+    type: upstream
+    upstream: "snipeit:http"

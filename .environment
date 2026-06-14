@@ -1,0 +1,19 @@
+# --- Database (relationship name: database) ---
+export DB_CONNECTION="mysql"
+export DB_HOST="$DATABASE_HOST"
+export DB_PORT="$DATABASE_PORT"
+export DB_DATABASE="$DATABASE_PATH"
+export DB_USERNAME="$DATABASE_USERNAME"
+export DB_PASSWORD="$DATABASE_PASSWORD"
+
+# --- Redis (relationship name: cache) ---
+export CACHE_DRIVER="redis"
+export SESSION_DRIVER="redis"
+export QUEUE_CONNECTION="redis"
+export REDIS_HOST="$CACHE_HOST"
+export REDIS_PORT="$CACHE_PORT"
+
+# --- Mail (Upsun's built-in SMTP) ---
+export MAIL_MAILER="smtp"
+export MAIL_HOST="$PLATFORM_SMTP_HOST"
+export MAIL_PORT="25"
